@@ -7,6 +7,7 @@ bl_info = {
 import bpy
 from bpy.props import StringProperty
 import time
+import os
 
 class ReloadOperator(bpy.types.Operator):
     bl_idname = "wm.reload_addon"
@@ -46,14 +47,26 @@ class ReloadPreferences(bpy.types.AddonPreferences):
         layout.prop(self, "filepath")
 
 
-def register():
-    bpy.utils.register_class(ReloadOperator)
-    bpy.utils.register_class(ReloadPreferences)
+@bpy.app.handlers.persistent
+def load_handler(dummy):
     wm = bpy.context.window_manager
     km = wm.keyconfigs.active.keymaps["Window"]
     km.keymap_items.new('wm.reload_addon', 'F5', 'PRESS', repeat=False)
 
 
+def register():
+    bpy.utils.register_class(ReloadOperator)
+    bpy.utils.register_class(ReloadPreferences)
+
+    wm = bpy.context.window_manager
+    km = wm.keyconfigs.active.keymaps["Window"]
+    km.keymap_items.new('wm.reload_addon', 'F5', 'PRESS', repeat=False)
+
+    bpy.app.handlers.load_post.append(load_handler)
+
+
 def unregister():
     bpy.utils.unregister_class(ReloadOperator)
     bpy.utils.unregister_class(ReloadPreferences)
+
+    bpy.app.handlers.load_post.remove(load_handler)
